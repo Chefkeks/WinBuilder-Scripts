@@ -1,0 +1,104 @@
+[Main]
+Title=SG Shortcuts
+Author=Chefkeks
+Level=1
+Version=1
+Description=Add SGE / SDE / SGN Recovery Shortcuts and SGN KeyRecovery to existing boot.wim
+Contact=boot-land.net
+Date=14.11.2010
+Selected=None
+Download_Level=0
+NoWarning=False
+Credits=Sophos for providing SGE / SDE / SGN Recovery files, manuals, etc.
+
+[Process]
+Echo,"Processing ..."
+//Rename Target
+ShellExecute,Hide,cmd.exe,"/C rename "%BaseDir%\Target" "Target_renamed""
+If,EXISTDIR,"%BaseDir%\Target",Begin
+Message,"%BaseDir%\Target still exists! Failed to rename the directory! Close all programs and explorer windows accessing %TargetDir% and then click the 'OK' button to try it again!",Error
+ShellExecute,Hide,cmd.exe,"/C rename "%BaseDir%\Target" "Target_renamed""
+If,EXISTDIR,"%BaseDir%\Target",Begin
+Message,"%BaseDir%\Target still exists! Failed to rename the directory! Aborting...
+Exit,"Exiting..."
+End
+End
+If,NOT,EXISTDIR,"%BaseDir%\Target",Begin
+DirMake,%TargetDir%
+End
+//ImageX
+If,ExistFile,%Tools%\%OSArch%\imagex.exe,Begin
+Set,%IMAGEX%,%Tools%\%OSArch%\imagex.exe
+End
+//Mount boot.wim
+Echo,"Mounting boot.wim"
+//If,EXISTDIR,%BootSRC%,Begin
+//DirDelete,%BootSRC%
+//DirMake,%BootSRC%
+//End
+ShellExecute,Hide,"#$q%IMAGEX%#$q","/mountrw #$q%BaseDir%\Target_renamed\%ProjectTitle%\sources\boot.wim#$q 1 #$q%TargetDir%#$q"
+//SGE SDE Shortcuts
+If,EXISTFILE,"%TargetDir%\Program Files\Sophos\RecoveryLogon\SgeRecLogon.exe",Begin
+If,%pCheckBoxSGESDE%,EQUAL,True,Begin
+//Add_Shortcut,Type,StartMenuFolder,(path\)FileName,Title,Work Folder,Parameters,(path\)IconFile#$cIconIndex,StartMode=(1,2,3),ToolTipText(only Gena/LiveXP)
+If,%pCheckBox1%,Equal,True,Add_Shortcut,Desktop,,"X:\Program Files\Sophos\RecoveryLogon\SgeRecLogon.exe",%pTextBox2%
+If,%pCheckBox2%,Equal,True,Add_Shortcut,StartMenu,%pTextBox1%,"X:\Program Files\Sophos\RecoveryLogon\SgeRecLogon.exe",%pTextBox2%
+If,%pCheckBox3%,Equal,True,Add_Shortcut,QuickLaunch,"X:\Program Files\Sophos\RecoveryLogon\SgeRecLogon.exe",%pTextBox2%
+End
+End
+//SGN Files
+If,%pCheckBox9%,Equal,True,Begin
+DirMake,"%TargetDir%\Program Files\Sophos\KeyRecovery and Restore\"
+FileCopy,"%pFileBox1%\KeyRecovery and Restore\*.*","%TargetDir%\Program Files\Sophos\KeyRecovery and Restore\"
+End
+//SGN Shortcuts
+If,EXISTFILE,"%TargetDir%\Program Files\Sophos\KeyRecovery and Restore\RecoverKeys.exe",Begin
+If,%pCheckBoxSGN%,EQUAL,True,Begin
+If,%pCheckBox6%,Equal,True,Add_Shortcut,Desktop,,"X:\Program Files\Sophos\KeyRecovery and Restore\RecoverKeys.exe",%pTextBox4%
+If,%pCheckBox7%,Equal,True,Add_Shortcut,StartMenu,%pTextBox3%,"X:\Program Files\Sophos\KeyRecovery and Restore\RecoverKeys.exe",%pTextBox4%
+If,%pCheckBox8%,Equal,True,Add_Shortcut,QuickLaunch,"X:\Program Files\Sophos\KeyRecovery and Restore\RecoverKeys.exe",%pTextBox4%
+End
+End
+//Unmount boot.wim
+Echo,"Unmounting boot.wim"
+If,ExistDir,"%TargetDir%\Windows",ShellExecute,Hide,"#$q%imagex%#$q","/unmount /commit #$q%TargetDir%#$q"
+//Rename Target
+DirDelete,"%BaseDir%\Target"
+ShellExecute,Hide,cmd.exe,"/C rename "%BaseDir%\Target_renamed" "Target""
+If,EXISTDIR,"%BaseDir%\Target_renamed",Begin
+Message,"%BaseDir%\Target_renamed still exists! Failed to rename the directory! Delete 'Target' in %BaseDir% and rename 'Target_renamed' to 'Target'.",Warning
+Exit,"Exiting..."
+End
+
+[Interface]
+pCheckBox1="Desktop shortcut",1,3,16,42,122,18,False
+pCheckBox2="Start menu shortcut",1,3,16,78,122,18,True
+pCheckBox3="Quicklaunch shortcut",1,3,16,60,122,18,False
+pTextBox1="Start Menu folder:",1,0,16,115,146,21,Accessories
+pTextBox2="Shortcut name:",1,0,16,152,146,23,"SGE Recovery Logon"
+pCheckBoxSGESDE="Add Shortcuts for SGE / SDE",1,3,2,24,193,18,True
+pTextLabel1="Safeguard Easy / Disk Encryption",1,1,3,2,206,18,9,Bold
+pBevel1=pBevel1,1,12,-1,0,214,178
+pTextLabel2="Safeguard Enterprise",1,1,219,2,134,18,9,Bold
+pBevel2=pBevel2,1,12,216,0,377,178
+pCheckBoxSGN="Add Shortcuts for SGN",1,3,219,24,205,18,True
+pCheckBox6="Desktop shortcut",1,3,235,42,122,18,False
+pCheckBox7="Start menu shortcut",1,3,235,78,122,18,True
+pCheckBox8="Quicklaunch shortcut",1,3,235,60,122,18,False
+pTextBox3="Start Menu folder:",1,0,235,113,146,21,Accessories
+pTextBox4="Shortcut name:",1,0,235,152,146,23,"SGN Key Recovery"
+pFileBox1=%GlobalTemplates%\SGN_Tools,1,13,389,36,204,30,file
+pTextLabel3="SGN KeyRecovery and Restore",1,1,394,3,194,18,9,Bold
+pTextLabel4="Note: Copy the 'KeyRecovery and Restore' directory from the 'tools' directory from the Safeguard Enterprise Installation Package to the directory above or point to a directory with the 'KeyRecovery and Restore' directory. Copy the directory and not only the files!",1,1,395,63,192,112,9,Normal
+pCheckBox9="Add SGN 'KeyRecovery and Restore'",1,3,394,21,200,18,True
+
+[InterfaceEncoded]
+
+[EncodedFile-AuthorEncoded-safeguard.gif]
+lines=0
+0=R0lGODlhJwAmANUAAIOXzLrE54md1pam2UdalGN0qufq9dvg8Iqd2JqmyMbP5sLK3qy74rK62Gx9tvP0+am11nyOy9ba7G2Au4SSultrp/7+/F5wqnaKxGN2sXKGvk9im6Kszoea1P7+/mZ7tPz+/XKFwXyPymt8rD1Ri1hsp3mJxv/9/vX4+/7/+4yc2FVpotLa8MrQ4FRnoXqGse7x94GUz4uYwqqyz/j4+05gn/b3+H2Nvmh7t/z//6Gu2pSgxP7////+/////f///yH5BAAAAAAALAAAAAAnACYAQAb/wJ9wSCwahzmf73FQKFgGZe9nOVqFvN8pxxt0vmAw6+f7BcC+nvqXQjU+l4tskYjb7/h8fFHlSR8UFAZqHj45U0MePzw8VWVDPoqRWmtXlpeYmUKKHhYHCAgCoKCioggqCAGOJ1RDfj2PKAEaISEQBze1Gru1IbS/vAM+IwQvCxwuBMrLHD0pfmlTfjycijw5J4iSmtzd3t+ahYllAaOmp6EMNIjchYo9EqcqAgIqqAgDBjyf8wFCPYrIqClTyNA/GAwiiFjIcKFCEQB0RHgoAlaWRVnK2Gig4QOOBAc44Bjp0eNIHB9MoiR5g8YPDw9mXHDh4kaLGTRdrFjhgsOB/xkjdoxw0cAHjxYyZtKc00iajwQESEiV2uIHE4tkHhGplCNgH2hawYkdS7as2Ss9DDA4F2oACx4DvTny0KgculKkQOlQ0k1aIRoD7rK1R0rAA28eTihhMGoUKgFjUngIIGqANx8neMCIwbmz5wE0fBjo0JnVD2kZfyT5pxmCCRMYMLyGLTt2bNi4Y2dMgdlZlh4WaHCcMEFHSOLIkytPXlVSNiEbHWTIMIfD9OvYs2vPICHbowcQCpQoQWHBjvHo04/PsIBCBfXjHUggQ2ZBgQ0bXrTgsKLGBv8j3DRIZikc0EAWKaRQxEWLKPEAARvssMEyxUz4ggH/QHLaFNucoDYYDyBQU0kPD0Al1QY5kGFBGdFMIUVWRkTjDiQAvYKFUz1klMY17GBB0FlABinkkEQWaWQmQQAAO3ic4y1OTEtNL00sStFLz0xjGAUjDEgy45dPYDV1YGQAAPE4BhuVzGMPAQAAAAIAAAAlAAAAGQMAAAAAAAABAAAAAAAAAAAAAAA
+
+[AuthorEncoded]
+safeguard.gif=866,1155
+Logo=safeguard.gif
+
